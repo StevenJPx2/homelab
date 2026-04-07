@@ -1,0 +1,14 @@
+# Environment
+.env
+
+# Service data directories
+pihole/
+uptime-kuma/
+portainer/
+caddy/data/
+caddy/config/
+cloudflared/
+homepage/config/logs/
+
+# Python
+__pycache__/
