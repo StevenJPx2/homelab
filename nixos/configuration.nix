@@ -108,15 +108,6 @@
               size = "small";
               widgets = [
                 {
-                  type = "server-stats";
-                  servers = [ { type = "local"; name = "macbook-server"; } ];
-                }
-              ];
-            }
-            {
-              size = "full";
-              widgets = [
-                {
                   type = "monitor";
                   title = "Services";
                   cache = "1m";
@@ -126,6 +117,15 @@
                     { title = "Home Assistant"; url = "http://192.168.0.40:8123"; icon = "si:homeassistant"; }
                     { title = "HA public (tunnel)"; url = "https://ha.stevenjohn.co"; icon = "si:cloudflare"; }
                   ];
+                }
+              ];
+            }
+            {
+              size = "full";
+              widgets = [
+                {
+                  type = "server-stats";
+                  servers = [ { type = "local"; name = "macbook-server"; } ];
                 }
               ];
             }

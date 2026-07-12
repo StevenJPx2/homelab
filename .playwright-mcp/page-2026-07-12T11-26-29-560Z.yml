@@ -1,0 +1,105 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - generic [ref=f1e4]:
+      - navigation [ref=f1e10]:
+        - link "Home" [ref=f1e11] [cursor=pointer]:
+          - /url: /home
+      - button [ref=f1e14] [cursor=pointer]
+    - main [ref=f1e19]:
+      - heading "Home" [level=1] [ref=f1e20]
+      - generic [ref=f1e29]:
+        - generic [ref=f1e31]:
+          - heading "Services" [level=2] [ref=f1e33]
+          - list [ref=f1e35]:
+            - generic [ref=f1e37]:
+              - link "AdGuard Home" [ref=f1e38] [cursor=pointer]:
+                - /url: http://192.168.0.40
+              - list [ref=f1e39]:
+                - listitem "200" [ref=f1e40]: OK
+                - listitem [ref=f1e41]: 4ms
+            - generic [ref=f1e46]:
+              - link "Syncthing" [ref=f1e47] [cursor=pointer]:
+                - /url: http://192.168.0.40:8384
+              - list [ref=f1e48]:
+                - listitem "200" [ref=f1e49]: OK
+                - listitem [ref=f1e50]: 3ms
+            - generic [ref=f1e55]:
+              - link "Home Assistant" [ref=f1e56] [cursor=pointer]:
+                - /url: http://192.168.0.40:8123
+              - list [ref=f1e57]:
+                - listitem "200" [ref=f1e58]: OK
+                - listitem [ref=f1e59]: 2ms
+            - generic [ref=f1e64]:
+              - link "HA public (tunnel)" [ref=f1e65] [cursor=pointer]:
+                - /url: https://ha.stevenjohn.co
+              - list [ref=f1e66]:
+                - listitem "200" [ref=f1e67]: OK
+                - listitem [ref=f1e68]: 485ms
+        - generic [ref=f1e73]:
+          - heading "Server Stats" [level=2] [ref=f1e75]
+          - generic [ref=f1e80]:
+            - generic [ref=f1e82]:
+              - generic [ref=f1e83]: macbook-server
+              - generic [ref=f1e84]: 1h uptime
+            - generic [ref=f1e88]:
+              - generic [ref=f1e90]:
+                - generic [ref=f1e91]: CPU
+                - generic [ref=f1e92]: 10 %
+              - generic [ref=f1e98]:
+                - generic [ref=f1e99]: RAM
+                - generic [ref=f1e100]: 6 %
+              - generic [ref=f1e106]:
+                - generic [ref=f1e107]: DISK
+                - generic [ref=f1e108]: 7 %
+        - generic [ref=f1e113]:
+          - generic [ref=f1e114]:
+            - heading "Clock" [level=2] [ref=f1e116]
+            - generic [ref=f1e119]:
+              - generic [ref=f1e120]:
+                - generic [ref=f1e121]: 12 July
+                - generic [ref=f1e122]: "2026"
+              - generic [ref=f1e123]:
+                - generic [ref=f1e124]: 16:56
+                - generic [ref=f1e125]: Sunday
+          - generic [ref=f1e126]:
+            - heading [level=2] [ref=f1e128]:
+              - link "DNS Stats" [ref=f1e129] [cursor=pointer]:
+                - /url: http://localhost:80
+            - generic [ref=f1e131]:
+              - generic [ref=f1e132]:
+                - generic [ref=f1e133]:
+                  - generic [ref=f1e134]: "369"
+                  - generic [ref=f1e135]: QUERIES
+                - generic [ref=f1e136]:
+                  - generic [ref=f1e137]: 17%
+                  - generic [ref=f1e138]: BLOCKED
+                - generic [ref=f1e139]:
+                  - generic [ref=f1e140]: 76ms
+                  - generic [ref=f1e141]: LATENCY
+              - generic [ref=f1e146]:
+                - generic [ref=f1e147]: 11am
+                - generic [ref=f1e149]: 2pm
+                - generic [ref=f1e151]: 5pm
+                - generic [ref=f1e153]: 8pm
+                - generic [ref=f1e155]: 11pm
+                - generic [ref=f1e157]: 2am
+                - generic [ref=f1e159]: 5am
+                - generic [ref=f1e161]: 8am
+              - group [ref=f1e166]:
+                - generic "Top blocked domains" [ref=f1e167] [cursor=pointer]
+    - contentinfo [ref=f1e24]:
+      - generic [ref=f1e25]:
+        - link "Glance" [ref=f1e26] [cursor=pointer]:
+          - /url: https://github.com/glanceapp/glance
+        - link "v0.8.4" [ref=f1e27] [cursor=pointer]:
+          - /url: https://github.com/glanceapp/glance/releases/tag/v0.8.4
+  - generic [ref=f1e171]:
+    - generic [ref=f1e172]:
+      - generic [ref=f1e173]: 1M AVG
+      - generic [ref=f1e175]: 10 %
+    - generic [ref=f1e176]:
+      - generic [ref=f1e177]: 15M AVG
+      - generic [ref=f1e179]: 1 %
+    - generic [ref=f1e180]:
+      - generic [ref=f1e181]: TEMP C
+      - generic [ref=f1e183]: 71 °

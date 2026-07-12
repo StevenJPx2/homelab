@@ -1,0 +1,15 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e4]:
+    - navigation [ref=f1e10]:
+      - link "Home" [ref=f1e11] [cursor=pointer]:
+        - /url: /home
+    - button [ref=f1e14] [cursor=pointer]
+  - main [ref=f1e19]:
+    - heading "Home" [level=1] [ref=f1e20]
+    - generic [ref=f1e21]: Loading
+  - contentinfo [ref=f1e24]:
+    - generic [ref=f1e25]:
+      - link "Glance" [ref=f1e26] [cursor=pointer]:
+        - /url: https://github.com/glanceapp/glance
+      - link "v0.8.4" [ref=f1e27] [cursor=pointer]:
+        - /url: https://github.com/glanceapp/glance/releases/tag/v0.8.4
