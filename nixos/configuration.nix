@@ -127,12 +127,6 @@
                   type = "server-stats";
                   servers = [ { type = "local"; name = "macbook-server"; } ];
                 }
-              ];
-            }
-            {
-              size = "small";
-              widgets = [
-                { type = "clock"; format = "24h"; }
                 {
                   type = "custom-api";
                   title = "Temps";
@@ -151,6 +145,12 @@
                     </div>
                   '';
                 }
+                { type = "clock"; format = "24h"; }
+              ];
+            }
+            {
+              size = "small";
+              widgets = [
                 {
                   type = "dns-stats";
                   service = "adguard";
