@@ -134,6 +134,24 @@
               widgets = [
                 { type = "clock"; format = "24h"; }
                 {
+                  type = "custom-api";
+                  title = "Temps";
+                  url = "http://localhost:8090";
+                  cache = "1m";
+                  template = ''
+                    <div class="flex justify-evenly text-center">
+                      <div>
+                        <div class="color-highlight size-h1">{{ .JSON.Int "cpu" }}°C</div>
+                        <div class="size-h6">CPU</div>
+                      </div>
+                      <div>
+                        <div class="color-highlight size-h1">{{ .JSON.Int "fan" }}</div>
+                        <div class="size-h6">FAN RPM</div>
+                      </div>
+                    </div>
+                  '';
+                }
+                {
                   type = "dns-stats";
                   service = "adguard";
                   url = "http://localhost:80";
@@ -145,6 +163,56 @@
           ];
         }
       ];
+    };
+  };
+
+  # --- Tiny temps JSON API (127.0.0.1:8090) for the Glance Temps widget ---
+  systemd.services.temps-api = {
+    description = "CPU temp + fan RPM JSON endpoint for Glance";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      DynamicUser = true;
+      Restart = "on-failure";
+      ExecStart = "${pkgs.python3}/bin/python3 ${pkgs.writeText "temps-api.py" ''
+        import glob, json
+        from http.server import HTTPServer, BaseHTTPRequestHandler
+
+        def read(p):
+            try:
+                with open(p) as f:
+                    return f.read().strip()
+            except Exception:
+                return None
+
+        def stats():
+            cpu = 0
+            fan = 0
+            for d in glob.glob("/sys/class/hwmon/hwmon*"):
+                if read(d + "/name") == "coretemp":
+                    vals = [int(v) for v in (read(p) for p in glob.glob(d + "/temp*_input")) if v]
+                    if vals:
+                        cpu = max(vals) // 1000
+            for p in glob.glob("/sys/devices/platform/applesmc*/fan1_input") + glob.glob("/sys/class/hwmon/hwmon*/fan1_input"):
+                v = read(p)
+                if v:
+                    fan = int(v)
+                    break
+            return {"cpu": cpu, "fan": fan}
+
+        class H(BaseHTTPRequestHandler):
+            def do_GET(self):
+                b = json.dumps(stats()).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
+
+            def log_message(self, *a):
+                pass
+
+        HTTPServer(("127.0.0.1", 8090), H).serve_forever()
+      ''}";
     };
   };
 
