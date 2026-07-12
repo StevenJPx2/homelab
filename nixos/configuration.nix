@@ -94,6 +94,7 @@
   # --- Glance dashboard (web UI :8080) ---
   services.glance = {
     enable = true;
+    environmentFile = "/var/lib/glance.env";  # ADGUARD_USERNAME / ADGUARD_PASSWORD
     settings = {
       server = {
         host = "0.0.0.0";
@@ -132,11 +133,13 @@
               size = "small";
               widgets = [
                 { type = "clock"; format = "24h"; }
-                # dns-stats for AdGuard needs credentials; add via
-                # services.glance.environmentFile:
-                # { type = "dns-stats"; service = "adguard";
-                #   url = "http://localhost:80";
-                #   username = "admin"; password = "\${ADGUARD_PASSWORD}"; }
+                {
+                  type = "dns-stats";
+                  service = "adguard";
+                  url = "http://localhost:80";
+                  username = "\${ADGUARD_USERNAME}";
+                  password = "\${ADGUARD_PASSWORD}";
+                }
               ];
             }
           ];
