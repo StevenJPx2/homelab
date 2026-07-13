@@ -135,13 +135,23 @@
                   template = ''
                     <div class="flex justify-evenly text-center">
                       <div>
-                        <div class="color-highlight size-h1">{{ .JSON.Int "cpu" }}°C</div>
-                        <div class="size-h6">CPU</div>
+                        <div class="color-highlight size-h1">{{ .JSON.Int "battery" }}%</div>
+                        <div class="size-h6">BATTERY · {{ .JSON.String "battery_status" }}</div>
                       </div>
+                      {{ range .JSON.Array "fans" }}
                       <div>
-                        <div class="color-highlight size-h1">{{ .JSON.Int "fan" }}</div>
-                        <div class="size-h6">FAN RPM</div>
+                        <div class="color-highlight size-h1">{{ .Int "rpm" }}</div>
+                        <div class="size-h6">{{ .String "label" }} RPM</div>
                       </div>
+                      {{ end }}
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(6.5rem,1fr));gap:.8rem;text-align:center;margin-top:1.4rem;">
+                      {{ range .JSON.Array "temps" }}
+                      <div>
+                        <div class="color-highlight size-h3">{{ .Int "value" }}°</div>
+                        <div class="size-h6">{{ .String "label" }}</div>
+                      </div>
+                      {{ end }}
                     </div>
                   '';
                 }
@@ -177,6 +187,17 @@
         import glob, json
         from http.server import HTTPServer, BaseHTTPRequestHandler
 
+        SMC = "/sys/devices/platform/applesmc.768"
+        FRIENDLY = {
+            "TB0T": "Battery", "TB1T": "Battery 1", "TB2T": "Battery 2",
+            "TC0C": "CPU Core", "TC1C": "CPU Core 1", "TC2C": "CPU Core 2",
+            "TC0D": "CPU Die", "TC0E": "CPU Die B", "TC0F": "CPU Die C",
+            "TC0P": "CPU Prox", "TCGC": "iGPU", "TCSA": "Sys Agent",
+            "TM0P": "Memory", "TP0P": "Platform", "TPCD": "PCH Die",
+            "Th1H": "Heatpipe", "Ts0P": "Palm Rest", "Ts0S": "Palm Rest 2",
+            "TW0P": "WiFi",
+        }
+
         def read(p):
             try:
                 with open(p) as f:
@@ -185,19 +206,41 @@
                 return None
 
         def stats():
-            cpu = 0
-            fan = 0
+            temps = []
             for d in glob.glob("/sys/class/hwmon/hwmon*"):
                 if read(d + "/name") == "coretemp":
-                    vals = [int(v) for v in (read(p) for p in glob.glob(d + "/temp*_input")) if v]
-                    if vals:
-                        cpu = max(vals) // 1000
-            for p in glob.glob("/sys/devices/platform/applesmc*/fan1_input") + glob.glob("/sys/class/hwmon/hwmon*/fan1_input"):
-                v = read(p)
-                if v:
-                    fan = int(v)
-                    break
-            return {"cpu": cpu, "fan": fan}
+                    for f in sorted(glob.glob(d + "/temp*_input")):
+                        v = read(f)
+                        if not v:
+                            continue
+                        lbl = read(f.replace("_input", "_label")) or "CPU"
+                        lbl = lbl.replace("Package id 0", "CPU Pkg")
+                        temps.append({"label": lbl, "value": int(v) // 1000})
+            for f in sorted(glob.glob(SMC + "/temp*_input")):
+                v = read(f)
+                if v is None:
+                    continue
+                c = int(v) / 1000
+                if c < 5 or c >= 110:
+                    continue  # dead/absent sensors (TW0P=-127, TCTD=0, TC0J=~1)
+                key = (read(f.replace("_input", "_label")) or "?").strip()
+                temps.append({"label": FRIENDLY.get(key, key), "value": round(c)})
+            temps.sort(key=lambda t: -t["value"])
+            fans = []
+            for f in sorted(glob.glob(SMC + "/fan*_input")):
+                v = read(f)
+                if not v:
+                    continue
+                lbl = (read(f.replace("_input", "_label")) or "Fan").strip()
+                fans.append({"label": lbl, "rpm": int(v)})
+            bat = read("/sys/class/power_supply/BAT0/capacity")
+            status = read("/sys/class/power_supply/BAT0/status") or ""
+            return {
+                "battery": int(bat) if bat else 0,
+                "battery_status": status,
+                "temps": temps,
+                "fans": fans,
+            }
 
         class H(BaseHTTPRequestHandler):
             def do_GET(self):
