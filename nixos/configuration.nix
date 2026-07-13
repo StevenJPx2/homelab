@@ -65,6 +65,57 @@
     "f /var/lib/hass/scenes.yaml 0644 hass hass"
   ];
 
+  # --- ntfy push notifications (ntfy.stevenjohn.co via tunnel, local :8093) ---
+  services.ntfy-sh = {
+    enable = true;
+    settings = {
+      base-url = "https://ntfy.stevenjohn.co";
+      listen-http = "127.0.0.1:8093";   # only reachable via cloudflared/localhost
+      behind-proxy = true;
+      auth-file = "/var/lib/ntfy-sh/user.db";
+      auth-default-access = "deny-all";  # users/tokens only — it's on the public internet
+      upstream-base-url = "https://ntfy.sh";  # instant iOS push via APNS relay
+    };
+  };
+
+  # --- Restic encrypted backups → Backblaze B2, daily 03:00 ---
+  # Secrets (never in git):
+  #   /var/lib/restic.env  — B2_ACCOUNT_ID / B2_ACCOUNT_KEY
+  #   /var/lib/restic.pass — repo encryption password (KEEP A COPY OFF-SERVER!)
+  services.restic.backups.b2 = {
+    initialize = true;
+    repository = "b2:steven-homelab-backup:macbook-server";
+    environmentFile = "/var/lib/restic.env";
+    passwordFile = "/var/lib/restic.pass";
+    paths = [
+      "/var/lib/hass"                 # Home Assistant: config, automations, .storage
+      "/var/lib/private/AdGuardHome"  # AdGuard: settings, filters, client config
+      "/var/lib/private/ntfy-sh"      # ntfy users/tokens
+      "/var/lib/glance.env"           # secrets needed for full restore
+      "/var/lib/cloudflared"
+      "/var/lib/restic.env"
+      "/var/lib/restic.pass"
+    ];
+    timerConfig = { OnCalendar = "03:00"; Persistent = true; };
+    pruneOpts = [ "--keep-daily 7" "--keep-weekly 4" "--keep-monthly 6" ];
+  };
+
+  # Push an ntfy alert whenever a tagged unit fails
+  systemd.services."notify-failure@" = {
+    description = "ntfy failure alert for %i";
+    serviceConfig.Type = "oneshot";
+    scriptArgs = "%i";
+    script = ''
+      ${pkgs.curl}/bin/curl -s \
+        -H "Authorization: Bearer $(cat /var/lib/ntfy-token)" \
+        -H "Title: $1 failed on macbook-server" \
+        -H "Priority: high" -H "Tags: rotating_light" \
+        -d "systemd unit $1 failed — check: journalctl -u $1" \
+        http://127.0.0.1:8093/alerts
+    '';
+  };
+  systemd.services."restic-backups-b2".onFailure = [ "notify-failure@restic-backups-b2.service" ];
+
   # --- Cloudflare Tunnel: keeps ha.stevenjohn.co working ---
   # Dashboard-managed tunnel; token lives in /var/lib/cloudflared/env
   # (TUNNEL_TOKEN=...) — deployed out-of-band, never in git.
@@ -106,6 +157,7 @@
                     { title = "AdGuard Home"; url = "http://192.168.0.40"; icon = "si:adguard"; }
                     { title = "Home Assistant"; url = "http://192.168.0.40:8123"; icon = "si:homeassistant"; }
                     { title = "HA public (tunnel)"; url = "https://ha.stevenjohn.co"; icon = "si:cloudflare"; }
+                    { title = "ntfy"; url = "https://ntfy.stevenjohn.co"; icon = "si:ntfy"; }
                   ];
                 }
               ];
