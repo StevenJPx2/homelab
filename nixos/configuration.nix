@@ -23,15 +23,6 @@
     openFirewall = false;  # wizard moved UI to :80; opened explicitly below
   };
 
-  # --- Syncthing (web UI :8384) ---
-  services.syncthing = {
-    enable = true;
-    user = "steven";
-    dataDir = "/home/steven/sync";
-    guiAddress = "0.0.0.0:8384";
-    openDefaultPorts = true;   # 22000/tcp+udp transfers, 21027/udp discovery
-  };
-
   # --- Home Assistant (web UI :8123) ---
   # extraComponents list = official NixOS wiki onboarding set
   services.home-assistant = {
@@ -113,7 +104,6 @@
                   cache = "1m";
                   sites = [
                     { title = "AdGuard Home"; url = "http://192.168.0.40"; icon = "si:adguard"; }
-                    { title = "Syncthing"; url = "http://192.168.0.40:8384"; icon = "si:syncthing"; }
                     { title = "Home Assistant"; url = "http://192.168.0.40:8123"; icon = "si:homeassistant"; }
                     { title = "HA public (tunnel)"; url = "https://ha.stevenjohn.co"; icon = "si:cloudflare"; }
                   ];
@@ -261,7 +251,7 @@
 
   # --- Firewall ---
   networking.firewall = {
-    allowedTCPPorts = [ 22 53 80 8080 8123 8384 ];  # 80 = AdGuard web UI
+    allowedTCPPorts = [ 22 53 80 8080 8123 ];  # 80 = AdGuard web UI
     allowedUDPPorts = [ 53 ];
     trustedInterfaces = [ "tailscale0" ];
   };
