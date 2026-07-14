@@ -7,3 +7,6 @@
 
 # Python
 __pycache__/
+
+# Playwright MCP session artifacts
+.playwright-mcp/

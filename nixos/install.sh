@@ -52,10 +52,13 @@ mkfs.fat -F32 -n BOOT "${DISK}1"
 mkfs.ext4 -F -L nixos "${DISK}2"
 
 # --- Mount ---
+# udevadm settle avoids the by-label race right after mkfs (symlinks may not
+# exist yet); mount by device name for the same reason. Idempotent on re-run.
 echo "==> Mounting"
-mount /dev/disk/by-label/nixos /mnt
+udevadm settle || true
+mountpoint -q /mnt || mount "${DISK}2" /mnt
 mkdir -p /mnt/boot
-mount /dev/disk/by-label/BOOT /mnt/boot
+mountpoint -q /mnt/boot || mount "${DISK}1" /mnt/boot
 
 # --- Config ---
 echo "==> Generating hardware config"
