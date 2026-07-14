@@ -353,6 +353,9 @@
         s.defaultProvider="anthropic";s.defaultModel="claude-sonnet-4-6";
         fs.writeFileSync(p,JSON.stringify(s,null,2));
       '
+      # Install homelab tool extensions (ntfy, etc.) into Pi's extension dir.
+      mkdir -p .pi/agent/extensions
+      cp -f ${./pi-extensions/ntfy.ts} .pi/agent/extensions/ntfy.ts
     '';
     serviceConfig = {
       User = "pi-runner";
@@ -361,6 +364,10 @@
       ExecStart = "${pkgs.nodejs_22}/bin/node ${pkgs.writeText "pi-runner.mjs" (builtins.readFile ./pi-runner.mjs)}";
       Restart = "on-failure";
       RestartSec = "10s";
+      # Make the root-only ntfy token readable by this service at
+      # $CREDENTIALS_DIRECTORY/ntfy-token (pi-runner.mjs loads it and passes
+      # NTFY_TOKEN into the spawned Pi so the ntfy tool can push).
+      LoadCredential = [ "ntfy-token:/var/lib/ntfy-token" ];
     };
   };
 

@@ -28,6 +28,18 @@ const MODEL = process.env.PI_MODEL || "claude-sonnet-4-6";
 const AUTH_FILE = join(HOME, ".pi", "agent", "auth.json");
 const TIMEOUT_MS = Number(process.env.PI_TIMEOUT_MS || 300000); // 5 min
 
+// ntfy token: systemd LoadCredential drops it at $CREDENTIALS_DIRECTORY/ntfy-token.
+// We read it once and pass NTFY_TOKEN into the spawned Pi so the ntfy tool works.
+let NTFY_TOKEN = process.env.NTFY_TOKEN || "";
+try {
+  const credDir = process.env.CREDENTIALS_DIRECTORY;
+  if (!NTFY_TOKEN && credDir) {
+    NTFY_TOKEN = readFileSync(join(credDir, "ntfy-token"), "utf8").trim();
+  }
+} catch {
+  // token optional — the ntfy tool degrades gracefully if unset
+}
+
 // System prompt: the agent knows what box it's on and what it can touch.
 const SYSTEM = `You are the homelab ops agent for "macbook-server", an always-on
 NixOS home server (a 2011 MacBook Pro A1278). You answer operational questions
@@ -64,7 +76,7 @@ function runPi(ticket) {
     ];
     const child = spawn(process.execPath, args, {
       cwd: HOME,
-      env: { ...process.env, HOME },
+      env: { ...process.env, HOME, NTFY_TOKEN },
       // Ignore stdin: under systemd there's no TTY, and Pi otherwise blocks
       // waiting to read piped stdin. (Manual TTY runs worked; the service hung.)
       stdio: ["ignore", "pipe", "pipe"],
