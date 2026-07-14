@@ -12,7 +12,7 @@
       "class_name": "Sandbox",
       "image": "./Dockerfile",
       "instance_type": "standard-1",
-      "max_instances": 2
+      "max_instances": 5
     }
   ],
   "durable_objects": {
@@ -23,6 +23,19 @@
       }
     ]
   },
+  "kv_namespaces": [
+    {
+      "binding": "TICKETS",
+      "id": "aa4614982dcc48d1b532daf213441213"
+    }
+  ],
+  "workflows": [
+    {
+      "name": "ticket-workflow",
+      "binding": "TICKET_WF",
+      "class_name": "TicketWorkflow"
+    }
+  ],
   "migrations": [
     {
       "new_sqlite_classes": ["Sandbox"],
