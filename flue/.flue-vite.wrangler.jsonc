@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "homelab-agents",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "FlueRegistry",
+        "FlueAskWorkflow",
+        "FlueHomelabAgent"
+      ]
+    }
+  ],
+  "main": ".flue-vite/_entry.ts",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "FLUE_HOMELAB_AGENT",
+        "class_name": "FlueHomelabAgent"
+      },
+      {
+        "name": "FLUE_ASK_WORKFLOW",
+        "class_name": "FlueAskWorkflow"
+      },
+      {
+        "name": "FLUE_REGISTRY",
+        "class_name": "FlueRegistry"
+      }
+    ]
+  }
+}

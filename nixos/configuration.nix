@@ -15,7 +15,13 @@
 
   # --- Remote access ---
   services.openssh.enable = true;
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    # Don't let Tailscale hijack DNS — the server resolves via its own AdGuard
+    # (localhost:53). MagicDNS-over-100.100.100.100 was failing to forward
+    # public queries, breaking all outbound name resolution (e.g. Anthropic API).
+    extraUpFlags = [ "--accept-dns=false" ];
+  };
 
   # --- AdGuard Home (DNS :53, web UI :80 — chosen in setup wizard) ---
   services.adguardhome = {
@@ -95,6 +101,7 @@
       "/var/lib/cloudflared"
       "/var/lib/restic.env"
       "/var/lib/restic.pass"
+      "/var/lib/pi-runner/.pi"        # Claude OAuth token + Pi settings
     ];
     timerConfig = { OnCalendar = "03:00"; Persistent = true; };
     pruneOpts = [ "--keep-daily 7" "--keep-weekly 4" "--keep-monthly 6" ];
@@ -300,6 +307,63 @@
     };
   };
 
+  # --- pi-runner: headless homelab-ops agent (127.0.0.1:8091) ---
+  # Runs Pi (@earendil-works/pi-coding-agent) non-interactively using the
+  # Claude Pro/Max OAuth token in /var/lib/pi-runner/.pi/agent/auth.json
+  # (written once via `pi /login anthropic` on the server) + the
+  # @gotgenes/pi-anthropic-auth extension. No API key. Only orchestration runs
+  # here — model inference is on Anthropic's servers, so the i5 is not taxed.
+  users.users.pi-runner = {
+    isSystemUser = true;
+    group = "pi-runner";
+    home = "/var/lib/pi-runner";
+    createHome = true;
+  };
+  users.groups.pi-runner = { };
+
+  systemd.services.pi-runner = {
+    description = "Headless Pi homelab-ops agent runner";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.nodejs_22 pkgs.git pkgs.bash pkgs.coreutils ];
+    environment = {
+      HOME = "/var/lib/pi-runner";
+      PI_RUNNER_PORT = "8091";
+      PI_MODEL = "claude-sonnet-4-6";
+      # npm writes caches under HOME; keep it self-contained
+      npm_config_cache = "/var/lib/pi-runner/.npm";
+    };
+    # Pin versions; install into the state dir on (re)start if missing/outdated.
+    preStart = ''
+      cd /var/lib/pi-runner
+      if [ ! -x node_modules/.bin/pi ] || \
+         [ "$(${pkgs.nodejs_22}/bin/node -e 'try{process.stdout.write(require("./node_modules/@earendil-works/pi-coding-agent/package.json").version)}catch(e){process.stdout.write("none")}')" != "0.80.6" ]; then
+        echo "pi-runner: installing pinned pi + auth extension…"
+        ${pkgs.nodejs_22}/bin/npm install --no-fund --no-audit \
+          @earendil-works/pi-coding-agent@0.80.6 \
+          @gotgenes/pi-anthropic-auth@1.0.0
+      fi
+      # Register the OAuth-compat extension in Pi's settings (idempotent).
+      mkdir -p .pi/agent
+      ${pkgs.nodejs_22}/bin/node -e '
+        const fs=require("fs"),p=".pi/agent/settings.json";
+        let s={};try{s=JSON.parse(fs.readFileSync(p))}catch{}
+        s.packages=Array.from(new Set([...(s.packages||[]),"npm:@gotgenes/pi-anthropic-auth"]));
+        s.defaultProvider="anthropic";s.defaultModel="claude-sonnet-4-6";
+        fs.writeFileSync(p,JSON.stringify(s,null,2));
+      '
+    '';
+    serviceConfig = {
+      User = "pi-runner";
+      Group = "pi-runner";
+      WorkingDirectory = "/var/lib/pi-runner";
+      ExecStart = "${pkgs.nodejs_22}/bin/node ${pkgs.writeText "pi-runner.mjs" (builtins.readFile ./pi-runner.mjs)}";
+      Restart = "on-failure";
+      RestartSec = "10s";
+    };
+  };
+
   # --- Firewall ---
   networking.firewall = {
     allowedTCPPorts = [ 22 53 80 8080 8123 ];  # 80 = AdGuard web UI
@@ -312,6 +376,9 @@
     extraGroups = [ "wheel" ];
     initialPassword = "changeme";   # change with `passwd` after first login!
   };
+
+  # Passwordless sudo for the wheel group (LAN/Tailscale-only box, key auth).
+  security.sudo.wheelNeedsPassword = false;
 
   environment.systemPackages = with pkgs; [ git vim htop ];
 

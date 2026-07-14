@@ -4,12 +4,14 @@
 set -euo pipefail
 
 HOST="${1:-macbook-server}"          # hostname / tailnet name / IP
-SRC="$(dirname "$0")/configuration.nix"
+DIR="$(dirname "$0")"
 
-echo "==> Deploying $SRC to steven@$HOST"
-scp "$SRC" "steven@$HOST:/tmp/configuration.nix"
+echo "==> Deploying nixos/ to steven@$HOST"
+# Sync every file the config references (configuration.nix reads sibling files
+# like pi-runner.mjs at build time via builtins.readFile).
+scp "$DIR/configuration.nix" "$DIR/pi-runner.mjs" "steven@$HOST:/tmp/"
 ssh -t "steven@$HOST" "
-  sudo cp /tmp/configuration.nix /etc/nixos/configuration.nix &&
+  sudo cp /tmp/configuration.nix /tmp/pi-runner.mjs /etc/nixos/ &&
   sudo nixos-rebuild switch
 "
 echo "==> Done. Rollback anytime with: ssh steven@$HOST sudo nixos-rebuild switch --rollback"
