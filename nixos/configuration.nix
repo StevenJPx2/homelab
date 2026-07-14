@@ -227,10 +227,36 @@
                   password = "\${ADGUARD_PASSWORD}";
                 }
                 {
+                  type = "custom-api";
+                  title = "Workhorse Fleet";
+                  url = "https://workhorse-sandbox.stevenjpx2.workers.dev/tickets";
+                  headers = { Authorization = "Bearer \${WORKHORSE_TOKEN}"; };
+                  cache = "1m";
+                  template = ''
+                    <ul class="list list-gap-10 collapsible-container" data-collapse-after="6">
+                      {{ range .JSON.Array "tickets" }}
+                      <li>
+                        <div class="flex items-center gap-7">
+                          {{ if eq (.String "status") "done" }}<div class="color-positive">●</div>
+                          {{ else if eq (.String "status") "errored" }}<div class="color-negative">●</div>
+                          {{ else }}<div class="color-primary">●</div>{{ end }}
+                          {{ if .Exists "prUrl" }}
+                          <a class="size-h4 color-highlight text-truncate" href="{{ .String "prUrl" }}" target="_blank">{{ .String "title" }}</a>
+                          {{ else }}
+                          <div class="size-h4 text-truncate">{{ .String "title" }}</div>
+                          {{ end }}
+                          <div class="size-h6 color-subdue" style="margin-left:auto">{{ .String "status" }}</div>
+                        </div>
+                      </li>
+                      {{ end }}
+                    </ul>
+                  '';
+                }
+                {
                   type = "iframe";
                   title = "Agent Tickets";
                   source = "http://192.168.0.40:8091";
-                  height = 460;
+                  height = 380;
                 }
               ];
             }
