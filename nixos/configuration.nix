@@ -389,6 +389,34 @@
     };
   };
 
+  # --- workhorse-token-push: keep the Workhorse Worker supplied with a fresh
+  # short-lived Anthropic OAuth ACCESS token. The MacBook is the sole refresh-
+  # token custodian; sandboxes only ever see short-lived access tokens.
+  # Secret: /var/lib/workhorse.env (WORKHORSE_TOKEN=..., root-only, not in git).
+  systemd.services.workhorse-token-push = {
+    description = "Push fresh Claude OAuth access token to Workhorse";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    path = [ pkgs.nodejs_22 pkgs.bash pkgs.coreutils ];
+    environment.HOME = "/var/lib/pi-runner";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "pi-runner";
+      Group = "pi-runner";
+      WorkingDirectory = "/var/lib/pi-runner";
+      EnvironmentFile = "/var/lib/workhorse.env";
+      ExecStart = "${pkgs.nodejs_22}/bin/node ${pkgs.writeText "token-push.mjs" (builtins.readFile ./token-push.mjs)}";
+    };
+  };
+  systemd.timers.workhorse-token-push = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "2min";
+      OnUnitActiveSec = "30min";  # tokens live ~5h; refresh forced when <90min left
+      RandomizedDelaySec = "2min";
+    };
+  };
+
   # --- Firewall ---
   networking.firewall = {
     allowedTCPPorts = [ 22 53 80 8080 8091 8123 ];  # 80 = AdGuard UI, 8091 = agent tickets
