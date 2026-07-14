@@ -1,14 +1,9 @@
-# Environment
+# Secrets
 .env
+*.env
 
-# Service data directories
-pihole/
-uptime-kuma/
-portainer/
-caddy/data/
-caddy/config/
-cloudflared/
-homepage/config/logs/
+# CortexKit local tooling state (AFT / Magic Context)
+.cortexkit/
 
 # Python
 __pycache__/

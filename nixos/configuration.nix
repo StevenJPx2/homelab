@@ -9,8 +9,10 @@
   networking.hostName = "macbook-server";
 
   # --- Headless laptop behavior ---
-  services.logind.lidSwitch = "ignore";
-  services.logind.lidSwitchExternalPower = "ignore";
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+  };
   services.mbpfan.enable = true;              # MacBook fan control
 
   # --- Remote access ---
@@ -148,6 +150,13 @@
       server = {
         host = "0.0.0.0";
         port = 8080;
+        proxied = true;   # behind cloudflared — needed for correct client IPs / brute-force blocking
+      };
+      # Dashboard is public via home.stevenjohn.co — require login.
+      # Secrets live in /var/lib/glance.env (git-ignored), referenced by name.
+      auth = {
+        secret-key = "\${GLANCE_SECRET_KEY}";
+        users.steven.password-hash = "\${GLANCE_PASSWORD_HASH}";
       };
       pages = [
         {
@@ -164,6 +173,7 @@
                     { title = "AdGuard Home"; url = "http://192.168.0.40"; icon = "si:adguard"; }
                     { title = "Home Assistant"; url = "https://ha.stevenjohn.co"; icon = "si:homeassistant"; }
                     { title = "ntfy"; url = "https://ntfy.stevenjohn.co"; icon = "si:ntfy"; }
+                    { title = "Agent Tickets"; url = "http://192.168.0.40:8091"; icon = "si:pi"; }
                   ];
                 }
               ];
@@ -215,6 +225,12 @@
                   url = "http://localhost:80";
                   username = "\${ADGUARD_USERNAME}";
                   password = "\${ADGUARD_PASSWORD}";
+                }
+                {
+                  type = "iframe";
+                  title = "Agent Tickets";
+                  source = "http://192.168.0.40:8091";
+                  height = 460;
                 }
               ];
             }
@@ -353,9 +369,11 @@
         s.defaultProvider="anthropic";s.defaultModel="claude-sonnet-4-6";
         fs.writeFileSync(p,JSON.stringify(s,null,2));
       '
-      # Install homelab tool extensions (ntfy, etc.) into Pi's extension dir.
+      # Install homelab tool extensions into Pi's extension dir.
       mkdir -p .pi/agent/extensions
       cp -f ${./pi-extensions/ntfy.ts} .pi/agent/extensions/ntfy.ts
+      # Clear any extensions removed from the repo (e.g. deprecated adguard tool).
+      find .pi/agent/extensions -name '*.ts' ! -name 'ntfy.ts' -delete
     '';
     serviceConfig = {
       User = "pi-runner";
@@ -373,7 +391,7 @@
 
   # --- Firewall ---
   networking.firewall = {
-    allowedTCPPorts = [ 22 53 80 8080 8123 ];  # 80 = AdGuard web UI
+    allowedTCPPorts = [ 22 53 80 8080 8091 8123 ];  # 80 = AdGuard UI, 8091 = agent tickets
     allowedUDPPorts = [ 53 ];
     trustedInterfaces = [ "tailscale0" ];
   };
