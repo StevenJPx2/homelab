@@ -11,7 +11,7 @@
 // Env: WORKHORSE_URL, WORKHORSE_TOKEN (bearer), HOME (pi-runner's home).
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const HOME = process.env.HOME || "/var/lib/pi-runner";
@@ -24,20 +24,41 @@ function readAuth() {
   return JSON.parse(readFileSync(AUTH, "utf8")).anthropic;
 }
 
+function tinyPiCall() {
+  execFileSync(process.execPath, [PI_CLI, "-p", "-np", "Reply with: ok"], {
+    env: { ...process.env, HOME },
+    timeout: 120_000,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
+
 let a = readAuth();
 if ((a.expires ?? 0) - Date.now() < MIN_LEFT_MS) {
   // Force Pi to refresh the token (in-process OAuth refresh, no browser).
   console.log("access token stale; forcing refresh via tiny pi call");
   try {
-    execFileSync(process.execPath, [PI_CLI, "-p", "-np", "Reply with: ok"], {
-      env: { ...process.env, HOME },
-      timeout: 120_000,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    tinyPiCall();
+    a = readAuth();
+    if ((a.expires ?? 0) - Date.now() < MIN_LEFT_MS) {
+      // Pi only refreshes near ITS OWN expiry margin, not ours — a token in
+      // its last ~85 min survives the tiny call unrefreshed and then dies
+      // between timer runs (observed 2026-07-17: three pushes re-sent the
+      // same 06:52 expiry; runs at 06:50-06:58 got a dead token).
+      // Zero the recorded expiry so Pi MUST refresh, then call again.
+      console.log("tiny call did not refresh; zeroing expiry to force it");
+      const full = JSON.parse(readFileSync(AUTH, "utf8"));
+      full.anthropic.expires = 0;
+      writeFileSync(AUTH, JSON.stringify(full));
+      tinyPiCall();
+      a = readAuth();
+      if ((a.expires ?? 0) - Date.now() < MIN_LEFT_MS) {
+        throw new Error("forced refresh still yielded a stale token");
+      }
+    }
   } catch (e) {
     console.error("refresh call failed (continuing with current token):", e.message);
+    a = readAuth();
   }
-  a = readAuth();
 }
 
 const token = process.env.WORKHORSE_TOKEN;
