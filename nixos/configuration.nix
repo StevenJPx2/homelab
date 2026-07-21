@@ -232,25 +232,44 @@
                   url = "https://workhorse-sandbox.stevenjpx2.workers.dev/tickets";
                   headers = { Authorization = "Bearer \${WORKHORSE_TOKEN}"; };
                   cache = "1m";
+                  # Summary strip (running/errored/parked counts) + per-ticket
+                  # rows deep-linking into the Nuxt UI ticket page.
                   template = ''
+                    {{ $running := 0 }}{{ $errored := 0 }}{{ $parked := 0 }}
+                    {{ range .JSON.Array "tickets" }}
+                      {{ $s := .String "status" }}
+                      {{ if or (eq $s "queued") (eq $s "planning") (eq $s "implementing") (eq $s "ready-for-review") }}{{ $running = add $running 1 }}
+                      {{ else if eq $s "errored" }}{{ $errored = add $errored 1 }}
+                      {{ else if or (eq $s "in-review") (eq $s "awaiting-input") (eq $s "awaiting-acceptance") }}{{ $parked = add $parked 1 }}{{ end }}
+                    {{ end }}
+                    <div class="flex justify-evenly text-center margin-bottom-10">
+                      <div><div class="color-primary size-h2">{{ $running }}</div><div class="size-h6">RUNNING</div></div>
+                      <div><div class="color-highlight size-h2">{{ $parked }}</div><div class="size-h6">PARKED</div></div>
+                      <div><div class="{{ if gt $errored 0 }}color-negative{{ else }}color-subdue{{ end }} size-h2">{{ $errored }}</div><div class="size-h6">ERRORED</div></div>
+                    </div>
                     <ul class="list list-gap-10 collapsible-container" data-collapse-after="6">
                       {{ range .JSON.Array "tickets" }}
                       <li>
                         <div class="flex items-center gap-7">
-                          {{ if eq (.String "status") "done" }}<div class="color-positive">●</div>
-                          {{ else if eq (.String "status") "errored" }}<div class="color-negative">●</div>
+                          {{ $s := .String "status" }}
+                          {{ if eq $s "done" }}<div class="color-positive">●</div>
+                          {{ else if eq $s "errored" }}<div class="color-negative">●</div>
+                          {{ else if or (eq $s "in-review") (eq $s "awaiting-input") (eq $s "awaiting-acceptance") }}<div class="color-highlight">●</div>
                           {{ else }}<div class="color-primary">●</div>{{ end }}
-                          {{ if .Exists "prUrl" }}
-                          <a class="size-h4 color-highlight text-truncate" href="{{ .String "prUrl" }}" target="_blank">{{ .String "title" }}</a>
-                          {{ else }}
-                          <div class="size-h4 text-truncate">{{ .String "title" }}</div>
-                          {{ end }}
-                          <div class="size-h6 color-subdue" style="margin-left:auto">{{ .String "status" }}</div>
+                          <a class="size-h4 color-highlight text-truncate" href="https://workhorse-ui.stevenjpx2.workers.dev/tickets/{{ .String "id" }}" target="_blank">{{ .String "title" }}</a>
+                          {{ if .Exists "prUrl" }}<a class="size-h6" href="{{ .String "prUrl" }}" target="_blank">PR</a>{{ end }}
+                          <div class="size-h6 color-subdue" style="margin-left:auto">{{ $s }}</div>
                         </div>
                       </li>
                       {{ end }}
                     </ul>
                   '';
+                }
+                {
+                  type = "iframe";
+                  title = "Workhorse Live";
+                  source = "https://workhorse-ui.stevenjpx2.workers.dev/embed";
+                  height = 320;
                 }
                 {
                   type = "iframe";
