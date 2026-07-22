@@ -173,7 +173,6 @@
                     { title = "AdGuard Home"; url = "http://192.168.0.40"; icon = "si:adguard"; }
                     { title = "Home Assistant"; url = "https://ha.stevenjohn.co"; icon = "si:homeassistant"; }
                     { title = "ntfy"; url = "https://ntfy.stevenjohn.co"; icon = "si:ntfy"; }
-                    { title = "Agent Tickets"; url = "http://192.168.0.40:8091"; icon = "si:pi"; }
                   ];
                 }
               ];
@@ -265,18 +264,7 @@
                     </ul>
                   '';
                 }
-                {
-                  type = "iframe";
-                  title = "Workhorse Live";
-                  source = "https://workhorse-ui.stevenjpx2.workers.dev/embed";
-                  height = 320;
-                }
-                {
-                  type = "iframe";
-                  title = "Agent Tickets";
-                  source = "http://192.168.0.40:8091";
-                  height = 380;
-                }
+
               ];
             }
           ];
