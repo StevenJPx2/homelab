@@ -19,7 +19,7 @@ the source of truth.
 |---|---|---|
 | Glance | http://192.168.0.40:8080 | Dashboard: server vitals (CPU/RAM/disk/temp) + service monitors |
 | AdGuard Home | http://192.168.0.40 | Network DNS + ad blocking (router DHCP hands out `.40` as DNS) |
-| Home Assistant | http://192.168.0.40:8123 · https://ha.stevenjohn.co | Public URL via Cloudflare Tunnel on the server |
+| Home Assistant | http://192.168.0.40:8123 · https://ha.stjhn.xyz | Public URL via Cloudflare Tunnel on the server |
 | Syncthing | http://192.168.0.40:8384 | File sync |
 
 ## Deploying changes
@@ -39,7 +39,7 @@ older generation from the boot menu.
 
 | File (on server) | Purpose |
 |---|---|
-| `/var/lib/cloudflared/env` | `TUNNEL_TOKEN=…` for the stevenjohn.co Cloudflare Tunnel |
+| `/var/lib/cloudflared/env` | `TUNNEL_TOKEN=…` for the stjhn.xyz Cloudflare Tunnel |
 
 ## Bare-metal reinstall
 

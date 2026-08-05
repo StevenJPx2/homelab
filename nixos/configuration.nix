@@ -55,7 +55,7 @@
       http = {
         server_host = "0.0.0.0";
         server_port = 8123;
-        # cloudflared (ha.stevenjohn.co) runs on this same host
+        # cloudflared (ha.stjhn.xyz) runs on this same host
         use_x_forwarded_for = true;
         trusted_proxies = [ "127.0.0.1" "::1" ];
       };
@@ -73,11 +73,11 @@
     "f /var/lib/hass/scenes.yaml 0644 hass hass"
   ];
 
-  # --- ntfy push notifications (ntfy.stevenjohn.co via tunnel, local :8093) ---
+  # --- ntfy push notifications (ntfy.stjhn.xyz via tunnel, local :8093) ---
   services.ntfy-sh = {
     enable = true;
     settings = {
-      base-url = "https://ntfy.stevenjohn.co";
+      base-url = "https://ntfy.stjhn.xyz";
       listen-http = "127.0.0.1:8093";   # only reachable via cloudflared/localhost
       behind-proxy = true;
       auth-file = "/var/lib/ntfy-sh/user.db";
@@ -125,11 +125,11 @@
   };
   systemd.services."restic-backups-b2".onFailure = [ "notify-failure@restic-backups-b2.service" ];
 
-  # --- Cloudflare Tunnel: keeps ha.stevenjohn.co working ---
+  # --- Cloudflare Tunnel: keeps ha.stjhn.xyz working ---
   # Dashboard-managed tunnel; token lives in /var/lib/cloudflared/env
   # (TUNNEL_TOKEN=...) — deployed out-of-band, never in git.
   systemd.services.cloudflared-tunnel = {
-    description = "Cloudflare Tunnel (stevenjohn.co)";
+    description = "Cloudflare Tunnel (stjhn.xyz)";
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
@@ -171,9 +171,9 @@
                   cache = "1m";
                   sites = [
                     { title = "AdGuard Home"; url = "http://192.168.0.40"; icon = "si:adguard"; }
-                    { title = "Home Assistant"; url = "https://ha.stevenjohn.co"; icon = "si:homeassistant"; }
-                    { title = "ntfy"; url = "https://ntfy.stevenjohn.co"; icon = "si:ntfy"; }
-                    { title = "OpenCode"; url = "https://oc.stevenjohn.co"; icon = "si:openai"; }
+                    { title = "Home Assistant"; url = "https://ha.stjhn.xyz"; icon = "si:homeassistant"; }
+                    { title = "ntfy"; url = "https://ntfy.stjhn.xyz"; icon = "si:ntfy"; }
+                    { title = "OpenCode"; url = "https://oc.stjhn.xyz"; icon = "si:openai"; }
                   ];
                 }
               ];
