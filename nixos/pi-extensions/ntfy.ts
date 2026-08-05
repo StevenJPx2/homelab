@@ -1,7 +1,7 @@
 // Pi extension: gives the homelab agent a tool to send ntfy push notifications.
 //
 // The agent can call `send_notification` to push a message to the user's phone
-// via the local ntfy service (ntfy.stevenjohn.co). Useful for ops tickets like
+// via the local ntfy service (ntfy.stjhn.xyz). Useful for ops tickets like
 // "check disk usage and alert me if any filesystem is over 90%".
 //
 // Auth: reads the ntfy access token from $NTFY_TOKEN (supplied by the pi-runner

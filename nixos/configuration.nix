@@ -152,7 +152,7 @@
         port = 8080;
         proxied = true;   # behind cloudflared — needed for correct client IPs / brute-force blocking
       };
-      # Dashboard is public via home.stevenjohn.co — require login.
+      # Dashboard is public via home.stjhn.xyz — require login.
       # Secrets live in /var/lib/glance.env (git-ignored), referenced by name.
       auth = {
         secret-key = "\${GLANCE_SECRET_KEY}";
