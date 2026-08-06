@@ -173,7 +173,7 @@
                     { title = "AdGuard Home"; url = "http://192.168.0.40"; icon = "si:adguard"; }
                     { title = "Home Assistant"; url = "https://ha.stjhn.xyz"; icon = "si:homeassistant"; }
                     { title = "ntfy"; url = "https://ntfy.stjhn.xyz"; icon = "si:ntfy"; }
-                    { title = "OpenCode"; url = "https://oc.stjhn.xyz"; icon = "si:openai"; }
+                    { title = "OpenCode"; url = "https://oc.stjhn.xyz"; icon = "si:opencode"; }
                     { title = "Pi"; url = "https://pi.stjhn.xyz"; icon = "si:pi"; }
                   ];
                 }
