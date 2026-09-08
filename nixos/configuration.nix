@@ -87,6 +87,11 @@
             to = "on";
           }];
           actions = [
+            # Stop the opposite ramp if it's running.
+            {
+              action = "input_boolean.turn_off";
+              target.entity_id = "input_boolean.sd_bedroom_brighten";
+            }
             {
               repeat = {
                 "while" = [
@@ -129,6 +134,11 @@
             to = "on";
           }];
           actions = [
+            # Stop the opposite ramp if it's running.
+            {
+              action = "input_boolean.turn_off";
+              target.entity_id = "input_boolean.sd_bedroom_dim";
+            }
             {
               repeat = {
                 "while" = [
