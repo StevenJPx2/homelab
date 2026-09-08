@@ -63,7 +63,9 @@
       "automation ui" = "!include automations.yaml";
       "script ui" = "!include scripts.yaml";
       "scene ui" = "!include scenes.yaml";
-      # Stream Deck hold-to-dim/brighten button state (Method 2)
+      # Stream Deck press-to-ramp brightness (single Short Press toggles a
+      # timed ramp; the Elgato HA plugin has no key-down/key-up, so a physical
+      # hold is impossible — press once to start, press again to stop).
       input_boolean = {
         sd_bedroom_brighten = {
           name = "Stream Deck Bedroom Brighten Active";
@@ -74,61 +76,89 @@
           icon = "mdi:brightness-3";
         };
       };
-      # Stream Deck hold-to-dim/brighten loops (Method 2, git-managed)
       "automation manual" = [
         {
           id = "sd_bedroom_brighten_loop";
-          alias = "Stream Deck: Bedroom Brighten While Held";
+          alias = "Stream Deck: Bedroom Brighten Ramp";
           mode = "restart";
           triggers = [{
             trigger = "state";
             entity_id = "input_boolean.sd_bedroom_brighten";
             to = "on";
           }];
-          actions = [{
-            repeat = {
-              "while" = [{
-                condition = "state";
-                entity_id = "input_boolean.sd_bedroom_brighten";
-                state = "on";
-              }];
-              sequence = [
-                {
-                  action = "light.turn_on";
-                  target.entity_id = "light.bedroom_ambient";
-                  data.brightness_step_pct = 5;
-                }
-                { delay.milliseconds = 200; }
-              ];
-            };
-          }];
+          actions = [
+            {
+              repeat = {
+                "while" = [
+                  {
+                    condition = "state";
+                    entity_id = "input_boolean.sd_bedroom_brighten";
+                    state = "on";
+                  }
+                  {
+                    condition = "numeric_state";
+                    entity_id = "light.bedroom_ambient";
+                    attribute = "brightness";
+                    below = 250;  # ~98%; stop at the ceiling
+                  }
+                ];
+                sequence = [
+                  {
+                    action = "light.turn_on";
+                    target.entity_id = "light.bedroom_ambient";
+                    data.brightness_step_pct = 5;
+                  }
+                  { delay.milliseconds = 200; }
+                ];
+              };
+            }
+            # Ramp finished (hit ceiling) — reset the button state.
+            {
+              action = "input_boolean.turn_off";
+              target.entity_id = "input_boolean.sd_bedroom_brighten";
+            }
+          ];
         }
         {
           id = "sd_bedroom_dim_loop";
-          alias = "Stream Deck: Bedroom Dim While Held";
+          alias = "Stream Deck: Bedroom Dim Ramp";
           mode = "restart";
           triggers = [{
             trigger = "state";
             entity_id = "input_boolean.sd_bedroom_dim";
             to = "on";
           }];
-          actions = [{
-            repeat = {
-              "while" = [{
-                condition = "state";
-                entity_id = "input_boolean.sd_bedroom_dim";
-                state = "on";
-              }];
-              sequence = [
-                {
-                  action = "light.turn_on";
-                  target.entity_id = "light.bedroom_ambient";
-                  data.brightness_step_pct = -5;
-                }
-                { delay.milliseconds = 200; }
-              ];
-            };
-          }];
+          actions = [
+            {
+              repeat = {
+                "while" = [
+                  {
+                    condition = "state";
+                    entity_id = "input_boolean.sd_bedroom_dim";
+                    state = "on";
+                  }
+                  {
+                    condition = "numeric_state";
+                    entity_id = "light.bedroom_ambient";
+                    attribute = "brightness";
+                    above = 8;  # ~3%; stop just above off so the light stays on
+                  }
+                ];
+                sequence = [
+                  {
+                    action = "light.turn_on";
+                    target.entity_id = "light.bedroom_ambient";
+                    data.brightness_step_pct = -5;
+                  }
+                  { delay.milliseconds = 200; }
+                ];
+              };
+            }
+            {
+              action = "input_boolean.turn_off";
+              target.entity_id = "input_boolean.sd_bedroom_dim";
+            }
+          ];
         }
       ];
     };
