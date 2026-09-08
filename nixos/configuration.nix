@@ -106,9 +106,9 @@
                   {
                     action = "light.turn_on";
                     target.entity_id = "light.bedroom_ambient";
-                    data.brightness_step_pct = 5;
+                    data.brightness_step_pct = 3;
                   }
-                  { delay.milliseconds = 200; }
+                  { delay.milliseconds = 250; }
                 ];
               };
             }
@@ -148,9 +148,9 @@
                   {
                     action = "light.turn_on";
                     target.entity_id = "light.bedroom_ambient";
-                    data.brightness_step_pct = -5;
+                    data.brightness_step_pct = -3;
                   }
-                  { delay.milliseconds = 200; }
+                  { delay.milliseconds = 250; }
                 ];
               };
             }
