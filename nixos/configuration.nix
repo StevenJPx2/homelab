@@ -35,6 +35,9 @@
   # extraComponents list = official NixOS wiki onboarding set
   services.home-assistant = {
     enable = true;
+    # LocalTuya-style direct-LAN control for the bedroom battens (they are
+    # Tuya CLOUD devices; local control removes cloud latency/rate-limit/reverts).
+    customComponents = [ unstable.home-assistant-custom-components.tuya_local ];
     extraComponents = [
       "analytics"
       "google_translate"
