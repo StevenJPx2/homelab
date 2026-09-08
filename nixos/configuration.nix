@@ -93,7 +93,7 @@
             # Stop the opposite ramp if it's running.
             {
               action = "input_boolean.turn_off";
-              target.entity_id = "input_boolean.sd_bedroom_brighten";
+              target.entity_id = "input_boolean.sd_bedroom_dim";
             }
             {
               repeat = {
@@ -114,9 +114,9 @@
                   {
                     action = "light.turn_on";
                     target.entity_id = "light.bedroom_ambient";
-                    data.brightness_step_pct = 3;
+                    data.brightness_step_pct = 2;
                   }
-                  { delay.milliseconds = 250; }
+                  { delay.milliseconds = 150; }
                 ];
               };
             }
@@ -140,7 +140,7 @@
             # Stop the opposite ramp if it's running.
             {
               action = "input_boolean.turn_off";
-              target.entity_id = "input_boolean.sd_bedroom_dim";
+              target.entity_id = "input_boolean.sd_bedroom_brighten";
             }
             {
               repeat = {
@@ -161,9 +161,9 @@
                   {
                     action = "light.turn_on";
                     target.entity_id = "light.bedroom_ambient";
-                    data.brightness_step_pct = -3;
+                    data.brightness_step_pct = -2;
                   }
-                  { delay.milliseconds = 250; }
+                  { delay.milliseconds = 150; }
                 ];
               };
             }
