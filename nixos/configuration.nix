@@ -63,6 +63,74 @@
       "automation ui" = "!include automations.yaml";
       "script ui" = "!include scripts.yaml";
       "scene ui" = "!include scenes.yaml";
+      # Stream Deck hold-to-dim/brighten button state (Method 2)
+      input_boolean = {
+        sd_bedroom_brighten = {
+          name = "Stream Deck Bedroom Brighten Active";
+          icon = "mdi:brightness-7";
+        };
+        sd_bedroom_dim = {
+          name = "Stream Deck Bedroom Dim Active";
+          icon = "mdi:brightness-3";
+        };
+      };
+      # Stream Deck hold-to-dim/brighten loops (Method 2, git-managed)
+      "automation manual" = [
+        {
+          id = "sd_bedroom_brighten_loop";
+          alias = "Stream Deck: Bedroom Brighten While Held";
+          mode = "restart";
+          triggers = [{
+            trigger = "state";
+            entity_id = "input_boolean.sd_bedroom_brighten";
+            to = "on";
+          }];
+          actions = [{
+            repeat = {
+              "while" = [{
+                condition = "state";
+                entity_id = "input_boolean.sd_bedroom_brighten";
+                state = "on";
+              }];
+              sequence = [
+                {
+                  action = "light.turn_on";
+                  target.entity_id = "light.bedroom_ambient";
+                  data.brightness_step_pct = 5;
+                }
+                { delay.milliseconds = 200; }
+              ];
+            };
+          }];
+        }
+        {
+          id = "sd_bedroom_dim_loop";
+          alias = "Stream Deck: Bedroom Dim While Held";
+          mode = "restart";
+          triggers = [{
+            trigger = "state";
+            entity_id = "input_boolean.sd_bedroom_dim";
+            to = "on";
+          }];
+          actions = [{
+            repeat = {
+              "while" = [{
+                condition = "state";
+                entity_id = "input_boolean.sd_bedroom_dim";
+                state = "on";
+              }];
+              sequence = [
+                {
+                  action = "light.turn_on";
+                  target.entity_id = "light.bedroom_ambient";
+                  data.brightness_step_pct = -5;
+                }
+                { delay.milliseconds = 200; }
+              ];
+            };
+          }];
+        }
+      ];
     };
   };
 
