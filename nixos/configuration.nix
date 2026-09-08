@@ -154,7 +154,7 @@
                     condition = "numeric_state";
                     entity_id = "light.bedroom_ambient";
                     attribute = "brightness";
-                    above = 8;  # ~3%; stop just above off so the light stays on
+                    above = 3;  # ramp to the dimmest step, then turn fully off
                   }
                 ];
                 sequence = [
@@ -166,6 +166,19 @@
                   { delay.milliseconds = 150; }
                 ];
               };
+            }
+            # If the ramp reached the floor (helper still on, not a user stop),
+            # switch the light fully off so dim goes all the way to 0.
+            {
+              "if" = [{
+                condition = "state";
+                entity_id = "input_boolean.sd_bedroom_dim";
+                state = "on";
+              }];
+              "then" = [{
+                action = "light.turn_off";
+                target.entity_id = "light.bedroom_ambient";
+              }];
             }
             {
               action = "input_boolean.turn_off";
