@@ -37,7 +37,17 @@
     enable = true;
     # LocalTuya-style direct-LAN control for the bedroom battens (they are
     # Tuya CLOUD devices; local control removes cloud latency/rate-limit/reverts).
-    customComponents = [ unstable.home-assistant-custom-components.tuya_local ];
+    # tuya_local's generic A60 CCT profile hardcodes a 2700K warm limit, but
+    # these battens natively reach 2000K (as the Tuya cloud exposed). Patch the
+    # color_temp floor back to 2000K so warm scenes/buttons aren't clamped.
+    customComponents = [
+      (unstable.home-assistant-custom-components.tuya_local.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace custom_components/tuya_local/devices/cct_lightbulb.yaml \
+            --replace-fail 'min: 2700' 'min: 2000'
+        '';
+      }))
+    ];
     extraComponents = [
       "analytics"
       "google_translate"
@@ -95,6 +105,25 @@
               action = "input_boolean.turn_off";
               target.entity_id = "input_boolean.sd_bedroom_dim";
             }
+            # If the light is off (e.g. dimmed fully off), seed it on at minimum
+            # brightness so the ramp has a non-null level to build from.
+            {
+              "if" = [{
+                condition = "state";
+                entity_id = "light.bedroom_ambient";
+                state = "off";
+              }];
+              "then" = [
+                {
+                  action = "light.turn_on";
+                  target.entity_id = "light.bedroom_ambient";
+                  data.brightness_pct = 1;
+                }
+                # Let the seeded brightness settle so the ramp guard below reads
+                # a real value instead of the stale null from the off state.
+                { delay.milliseconds = 300; }
+              ];
+            }
             {
               repeat = {
                 "while" = [
@@ -107,7 +136,7 @@
                     condition = "numeric_state";
                     entity_id = "light.bedroom_ambient";
                     attribute = "brightness";
-                    below = 250;  # ~98%; stop at the ceiling
+                    below = 255;  # ramp all the way to full brightness
                   }
                 ];
                 sequence = [
