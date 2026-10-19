@@ -1,0 +1,53 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+	"Name": "Night Mode",
+	"Version": "0.1.0.0",
+	"Author": "Steven John",
+	"Actions": [
+		{
+			"Name": "Wake",
+			"UUID": "xyz.stjhn.night-mode.wake",
+			"Icon": "imgs/actions/wake/icon",
+			"Tooltip": "Blank key of the Night profile; press to bring the normal profile back.",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/wake/key"
+				}
+			],
+			"SupportedInMultiActions": false,
+			"UserTitleEnabled": false,
+			"VisibleInActionsList": false
+		}
+	],
+	"Category": "Night Mode",
+	"CategoryIcon": "imgs/plugin/category",
+	"CodePath": "bin/plugin.js",
+	"Description": "Blanks the Stream Deck while Home Assistant's input_boolean.night_mode is on.",
+	"Icon": "imgs/plugin/icon",
+	"SDKVersion": 3,
+	"Software": {
+		"MinimumVersion": "7.1"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		}
+	],
+	"Nodejs": {
+		"Version": "24"
+	},
+	"Profiles": [
+		{
+			"Name": "profiles/Night",
+			"DeviceType": 0,
+			"Readonly": true,
+			"DontAutoSwitchWhenInstalled": true,
+			"AutoInstall": false
+		}
+	],
+	"UUID": "xyz.stjhn.night-mode"
+}
