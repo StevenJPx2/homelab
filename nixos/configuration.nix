@@ -88,6 +88,30 @@ in
     ];
   };
 
+  # --- Immich: photo/video viewer for the archive on /srv/storage (LAN :2283) ---
+  # Originals stay on the exFAT drive and are only ever exposed read-only; the
+  # database, thumbnails and transcodes live on the SSD under /var/lib/immich.
+  # Machine learning (face/CLIP search) is off: this is a 2011 dual-core i5 that
+  # also serves DNS and Home Assistant. Flip machine-learning.enable to try it.
+  services.immich = {
+    enable = true;
+    host = "0.0.0.0";
+    port = 2283;
+    machine-learning.enable = false;
+  };
+  users.users.immich.extraGroups = [ "users" ];  # the exFAT mount is gid=users, umask 0007
+  systemd.services.immich-server = {
+    unitConfig.RequiresMountsFor = [ "/srv/storage" ];
+    serviceConfig.BindReadOnlyPaths = [ "/srv/storage/archives/macbook" ];
+  };
+  # Keep library scans/thumbnailing from starving AdGuard DNS and Home Assistant.
+  systemd.slices.system-immich.sliceConfig = {
+    CPUQuota = "200%";
+    CPUWeight = 20;
+    MemoryHigh = "3G";
+    MemoryMax = "4G";
+  };
+
   # --- AdGuard Home (DNS :53, web UI :80 — chosen in setup wizard) ---
   services.adguardhome = {
     enable = true;
@@ -221,6 +245,12 @@ in
         sd_bedroom_dim = {
           name = "Stream Deck Bedroom Dim Active";
           icon = "mdi:brightness-3";
+        };
+        # Read by the night-mode Stream Deck plugin (streamdeck/ in this repo),
+        # which blanks the deck while this is on.
+        night_mode = {
+          name = "Night Mode";
+          icon = "mdi:weather-night";
         };
       };
       "automation manual" = [
@@ -358,6 +388,40 @@ in
               target.entity_id = "input_boolean.sd_bedroom_dim";
             }
           ];
+        }
+        # Night lasts from the bedroom light going off until it comes back on.
+        # The 3s hold rides out the dim ramp's final turn_off and a resync
+        # briefly flipping one batten back on.
+        {
+          id = "night_mode_follows_bedroom";
+          alias = "Night mode follows the bedroom light";
+          mode = "restart";
+          triggers = [
+            {
+              trigger = "state";
+              entity_id = "light.bedroom_ambient";
+              to = "off";
+              "for".seconds = 3;
+              id = "off";
+            }
+            {
+              trigger = "state";
+              entity_id = "light.bedroom_ambient";
+              to = "on";
+              id = "on";
+            }
+          ];
+          actions = [{
+            "if" = [{ condition = "trigger"; id = "off"; }];
+            "then" = [{
+              action = "input_boolean.turn_on";
+              target.entity_id = "input_boolean.night_mode";
+            }];
+            "else" = [{
+              action = "input_boolean.turn_off";
+              target.entity_id = "input_boolean.night_mode";
+            }];
+          }];
         }
       ]
       # Resync flaky tuya_local batten pairs. Each *_ambient group is two
@@ -685,6 +749,9 @@ in
                   - title: lstng
                     url: http://127.0.0.1:47821
                     icon: si:rust
+                  - title: Immich
+                    url: http://127.0.0.1:2283/api/server/ping
+                    icon: sh:immich
 
           - size: full
             widgets:
@@ -981,7 +1048,7 @@ in
 
   # --- Firewall ---
   networking.firewall = {
-    allowedTCPPorts = [ 22 53 80 8080 8081 8091 8095 8097 8123 ];  # 80 = AdGuard UI, 8091 = agent tickets
+    allowedTCPPorts = [ 22 53 80 2283 8080 8081 8091 8095 8097 8123 ];  # 80 = AdGuard UI, 2283 = Immich, 8091 = agent tickets
     allowedUDPPorts = [ 53 ];
     trustedInterfaces = [ "tailscale0" ];
     # Music Assistant discovers HEOS/DLNA/Chromecast/AirPlay players via SSDP
