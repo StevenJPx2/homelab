@@ -1,0 +1,19 @@
+{
+  "body": [
+    "A **whole home server in code**: one **NixOS** machine, an old MacBook Pro running headless with the lid closed. Everything it runs is declared in `nixos/configuration.nix`.",
+    "Runs **AdGuard Home** for network DNS and ad blocking, **Home Assistant**, **Music Assistant**, **Syncthing**, **Immich** for photos and a dashboard. Home Assistant is reachable publicly through a **Cloudflare Tunnel**, and **Tailscale** covers private access.",
+    "**Deploys with one script** that copies the config and runs `nixos-rebuild switch`, which is atomic and can roll back. It replaced an earlier Docker Compose setup."
+  ],
+  "areas": [
+    "infrastructure-data"
+  ],
+  "technologies": {
+    "add": [
+      "nixos",
+      "home-assistant",
+      "immich",
+      "tailscale",
+      "cloudflare-tunnel"
+    ]
+  }
+}
